@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocsToOthers", "ConvertDocsToOthers\ConvertDocsToOthers.csproj", "{73AF0EB2-1E2D-447C-B9F8-21F84D1364B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDocsToOthers.Services", "ConvertDocsToOthers.Services\ConvertDocsToOthers.Services.csproj", "{87BE64D5-A857-4868-B211-E4A250C19525}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{73AF0EB2-1E2D-447C-B9F8-21F84D1364B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73AF0EB2-1E2D-447C-B9F8-21F84D1364B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73AF0EB2-1E2D-447C-B9F8-21F84D1364B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73AF0EB2-1E2D-447C-B9F8-21F84D1364B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87BE64D5-A857-4868-B211-E4A250C19525}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87BE64D5-A857-4868-B211-E4A250C19525}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87BE64D5-A857-4868-B211-E4A250C19525}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87BE64D5-A857-4868-B211-E4A250C19525}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3434F152-847F-44DD-B738-BAADD5040ECF}
+	EndGlobalSection
+EndGlobal

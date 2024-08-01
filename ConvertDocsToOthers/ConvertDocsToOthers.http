@@ -1,0 +1,6 @@
+@ConvertDocsToOthers_HostAddress = http://localhost:5219
+
+GET {{ConvertDocsToOthers_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
