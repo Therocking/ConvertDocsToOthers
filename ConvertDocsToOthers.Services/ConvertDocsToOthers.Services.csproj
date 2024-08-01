@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ConvertApi" Version="3.0.14" />
     <PackageReference Include="PuppeteerSharp" Version="18.0.4" />
-    <PackageReference Include="WkHtmlToPdf" Version="1.0.2" />
   </ItemGroup>
 
 </Project>

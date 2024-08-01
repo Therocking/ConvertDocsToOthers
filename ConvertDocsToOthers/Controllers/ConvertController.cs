@@ -16,19 +16,6 @@ namespace ConvertDocsToOthers.Controllers
             this.convertFiles = convertFiles;
         }
 
-        // [HttpGet("ConvertFromHtmlUrlToPdf")]
-        // public async Task<IActionResult> ConvertHtmlToPdf(string htmlUrl)
-        // {
-        //     try
-        //     {
-        //         var base64String = await convertFiles.ConvertHtmlToPdfByUrl(htmlUrl);
-        //         return Ok(new { Base64Data = base64String });
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         return StatusCode(500, ex.Message);
-        //     }
-        // }
         [HttpPost("ConvertByHtmlTextToPdf")]
         public async Task<IActionResult> ConverHtmlTextToPdf([FromBody] HtmlTextContent content)
         {
@@ -53,13 +40,7 @@ namespace ConvertDocsToOthers.Controllers
                 if (htmlFile.ContentType != "text/html")
                     return BadRequest("File not permited. The file most be html");
 
-                var uploadsFolder = "./uploads";
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                var filePath = Path.Combine(uploadsFolder, "index.html");
+                var filePath = $"./{htmlFile.Name}.html";
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
