@@ -13,5 +13,4 @@
   <ItemGroup>
     <ProjectReference Include="..\ConvertDocsToOthers.Services\ConvertDocsToOthers.Services.csproj" />
   </ItemGroup>
-
 </Project>
