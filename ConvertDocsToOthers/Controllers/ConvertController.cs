@@ -55,8 +55,8 @@ namespace ConvertDocsToOthers.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-        [HttpPost("ConvertFromPdfFileToJpg/{pageNumber}")]
-        public async Task<IActionResult> ConvertPdfFileToPdf(IFormFile pdfFile, int pageNumber)
+        [HttpPost("ConvertFromPdfFileToJpg")]
+        public async Task<IActionResult> ConvertPdfFileToPdf(IFormFile pdfFile, [FromQuery] int pageNumber)
         {
             try
             {
