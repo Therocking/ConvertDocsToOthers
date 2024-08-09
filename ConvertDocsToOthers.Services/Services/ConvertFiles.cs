@@ -1,6 +1,8 @@
 ﻿using ConvertApiDotNet;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
+using System.Linq;
+using System.Net.Http;
 
 namespace ConvertDocsToOthers.Services.Services
 {
@@ -8,6 +10,7 @@ namespace ConvertDocsToOthers.Services.Services
     {
         Task<string> ConvertHtmlFileToPdf(string htmlUrl, string fileName);
         Task<string> ConvertHtmlTextToPdf(string htmlContent);
+        Task<(string, string)> ConvertPdfFileToBase64(string pdfPath, string PdfFileName, int page);
     }
     public class ConvertFiles : IConvertFiles
     {
@@ -81,6 +84,44 @@ namespace ConvertDocsToOthers.Services.Services
             {
                 throw new Exception(ex.Message);
             }
+        }
+        public async Task<(string, string)> ConvertPdfFileToBase64(string pdfPath, string PdfFileName, int page)
+        {
+            var convertApi = new ConvertApi("5YfFrN7qK308Jswd");
+            var convert = await convertApi.ConvertAsync("pdf", "jpg",
+                new ConvertApiFileParam("File", $"{pdfPath}")
+            );
+
+            var jpgTempFilePath = $"{PdfFileName}.jpg";
+            var iteration = 1;
+
+            if (page != 1)
+            {
+                foreach (var jpgFile in convert.Files)
+                {
+                    if (iteration == page)
+                    {
+                        jpgTempFilePath = jpgFile.FileName;
+                        break;
+                    }
+
+                    iteration += 1;
+                }
+            }
+
+            await convert.SaveFilesAsync("./");
+
+            var jpgBase64 = ConvertToBase64(jpgTempFilePath);
+            var pdfBase64 = ConvertToBase64(pdfPath);
+
+            foreach (var jpgFile in convert.Files)
+            {
+                File.Delete(jpgFile.FileName);
+            }
+
+            File.Delete(pdfPath);
+
+            return (jpgBase64, pdfBase64);
         }
         private string ConvertToBase64(string filePath)
         {

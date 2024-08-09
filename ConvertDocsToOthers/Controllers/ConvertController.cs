@@ -55,6 +55,32 @@ namespace ConvertDocsToOthers.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+        [HttpPost("ConvertFromPdfFileToJpg/{pageNumber}")]
+        public async Task<IActionResult> ConvertPdfFileToPdf(IFormFile pdfFile, int pageNumber)
+        {
+            try
+            {
+                if (pdfFile == null || pdfFile.Length == 0)
+                    return BadRequest("No file uploaded");
+
+                if (pdfFile.ContentType != "application/pdf")
+                    return BadRequest("File not permited. The file most be pdf");
+
+                var filePath = $"./{pdfFile.Name}.pdf";
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await pdfFile.CopyToAsync(stream);
+                }
+
+                var (jpg, pdf) = await convertFiles.ConvertPdfFileToBase64(pdfPath: filePath, PdfFileName: pdfFile.Name, page: pageNumber);
+                return Ok(new { jpgBase64 = jpg, pdfbase64 = pdf });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
     public record struct HtmlTextContent
     {
