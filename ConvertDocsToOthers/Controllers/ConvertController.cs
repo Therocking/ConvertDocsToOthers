@@ -82,11 +82,11 @@ namespace ConvertDocsToOthers.Controllers
             }
         }
         [HttpPost("PdfPagesWithImage")]
-        public IActionResult CreatePdfImageByPdfPages([FromBody] PdfContent pdf)
+        public IActionResult CreatePdfImageByPdfPages([FromBody] PdfContent pdfContent)
         {
             try
             {
-                return Ok(convertFiles.ConvertPdfToJpg(pdf.PdfBase64));
+                return Ok(convertFiles.ConvertPdfToJpg(pdfContent.pdf));
             }
             catch (Exception ex)
             {
@@ -100,6 +100,6 @@ namespace ConvertDocsToOthers.Controllers
     }
     public record struct PdfContent
     {
-        public string PdfBase64 { get; set; }
+        public string pdf { get; set; }
     }
 }

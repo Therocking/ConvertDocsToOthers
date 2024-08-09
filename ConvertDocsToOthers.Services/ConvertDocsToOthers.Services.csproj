@@ -10,6 +10,7 @@
     <PackageReference Include="ConvertApi" Version="3.0.14" />
     <PackageReference Include="DinkToPdf" Version="1.0.8" />
     <PackageReference Include="iTextSharp" Version="5.5.13.4" />
+    <PackageReference Include="PDFium.Windows" Version="1.0.0" />
     <PackageReference Include="PDFiumSharpV2" Version="1.1.4" />
     <PackageReference Include="PdfiumViewer" Version="2.13.0" />
     <PackageReference Include="PuppeteerSharp" Version="18.0.4" />

@@ -213,9 +213,9 @@ namespace ConvertDocsToOthers.Services.Services
 
                             pages.Add(new
                             {
-                                NumeOfPAGE = $"{i}", //NUMERO DE LA PAGINA DEVOLVER EN FORMATO STRING
-                                CodeDOcument = base64String,// BASE64 DE LA PAGINA EN  JPG
-                                Base64pdfCode = outputPdfBase64// BASE64 DE LA PAGINA EN PDF
+                                Page = $"{i}", //NUMERO DE LA PAGINA DEVOLVER EN FORMATO STRING
+                                Jpgbase64 = base64String,// BASE64 DE LA PAGINA EN  JPG
+                                Pdfbase64 = outputPdfBase64// BASE64 DE LA PAGINA EN PDF
 
                             });
 
