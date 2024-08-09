@@ -81,10 +81,25 @@ namespace ConvertDocsToOthers.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+        [HttpPost("PdfPagesWithImage")]
+        public IActionResult CreatePdfImageByPdfPages([FromBody] PdfContent pdf)
+        {
+            try
+            {
+                return Ok(convertFiles.ConvertPdfToJpg(pdf.PdfBase64));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
     public record struct HtmlTextContent
     {
         public string HtmlText { get; set; }
     }
-
+    public record struct PdfContent
+    {
+        public string PdfBase64 { get; set; }
+    }
 }
