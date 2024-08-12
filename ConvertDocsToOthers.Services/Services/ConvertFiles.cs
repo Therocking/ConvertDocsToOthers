@@ -31,6 +31,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 //using PdfiumViewer;
 using PDFiumSharp;
+using PDFiumSharp.Types;
 
 namespace ConvertDocsToOthers.Services.Services
 {
@@ -197,6 +198,8 @@ namespace ConvertDocsToOthers.Services.Services
                             var page = doc.Pages[0];
 
                             using var thumb = new PDFiumBitmap((int)page.Width, (int)page.Height, false);
+                            var color = new PDFiumSharp.Types.FPDF_COLOR();
+                            thumb.Fill(new PDFiumSharp.Types.FPDF_COLOR(255, 255, 255, 255));
                             page.Render(thumb);
 
                             using MemoryStream memoryStreamBMP = new MemoryStream();
