@@ -48,7 +48,7 @@ namespace ConvertDocsToOthers.Services.Services
         {
             try
             {
-                var convertApi = new ConvertApi("5YfFrN7qK308Jswd");
+                var convertApi = new ConvertApi("secret_SFTgltkuCgcI6DR8");
                 var convert = await convertApi.ConvertAsync("html", "pdf",
                     new ConvertApiFileParam("File", $"{htmlUrl}"),
                     new ConvertApiParam("ViewportWidth", "200"),
@@ -86,7 +86,7 @@ namespace ConvertDocsToOthers.Services.Services
                 {
                     writer.Write(htmlContent);
                 }
-                var convertApi = new ConvertApi("5YfFrN7qK308Jswd");
+                var convertApi = new ConvertApi("secret_SFTgltkuCgcI6DR8");
                 var convert = await convertApi.ConvertAsync("html", "pdf",
                     new ConvertApiFileParam("File", $"{htmlFilePath}"),
                     new ConvertApiParam("ViewportWidth", "200"),
@@ -117,7 +117,7 @@ namespace ConvertDocsToOthers.Services.Services
         }
         public async Task<(string, string)> ConvertPdfFileToBase64(string pdfPath, string PdfFileName, int page)
         {
-            var convertApi = new ConvertApi("5YfFrN7qK308Jswd");
+            var convertApi = new ConvertApi("secret_iNO6pefuwYGCRIdo");
             var convert = await convertApi.ConvertAsync("pdf", "jpg",
                 new ConvertApiFileParam("File", $"{pdfPath}")
             );
