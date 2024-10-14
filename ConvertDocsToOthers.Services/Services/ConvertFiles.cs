@@ -86,7 +86,7 @@ namespace ConvertDocsToOthers.Services.Services
                 {
                     writer.Write(htmlContent);
                 }
-                var convertApi = new ConvertApi("secret_SFTgltkuCgcI6DR8");
+                var convertApi = new ConvertApi("secret_iNO6pefuwYGCRIdo");
                 var convert = await convertApi.ConvertAsync("html", "pdf",
                     new ConvertApiFileParam("File", $"{htmlFilePath}"),
                     new ConvertApiParam("ViewportWidth", "200"),
