@@ -1,44 +1,23 @@
 ﻿using ConvertApiDotNet;
 
-using Newtonsoft.Json;
-using System.Net.NetworkInformation;
 using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
 
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System.Collections;
-using IPdfConverter = DinkToPdf.Contracts.IConverter;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net;
-using DinkToPdf;
+using iText.Html2pdf;
+using iText.Kernel.Pdf;
+using iText.Layout;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
-using iTextSharp.text.pdf.parser;
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-//using PdfToSvg;
-//using ImageMagick;
 using System.Drawing;
 using System.Drawing.Imaging;
 //using PdfiumViewer;
 using PDFiumSharp;
-using PDFiumSharp.Types;
 
 namespace ConvertDocsToOthers.Services.Services
 {
     public interface IConvertFiles
     {
         Task<string> ConvertHtmlFileToPdf(string htmlUrl, string fileName);
-        Task<string> ConvertHtmlTextToPdf(string htmlContent);
+        string ConvertHtmlTextToPdf(string htmlContent);
         Task<(string, string)> ConvertPdfFileToBase64(string pdfPath, string PdfFileName, int page);
         List<object> ConvertPdfToJpg(string pdfBase64);
     }
@@ -48,22 +27,27 @@ namespace ConvertDocsToOthers.Services.Services
         {
             try
             {
-                var convertApi = new ConvertApi("secret_SFTgltkuCgcI6DR8");
-                var convert = await convertApi.ConvertAsync("html", "pdf",
-                    new ConvertApiFileParam("File", $"{htmlUrl}"),
-                    new ConvertApiParam("ViewportWidth", "200"),
-                    new ConvertApiParam("ViewportHeight", "200"),
-                    new ConvertApiParam("Background", "false"),
-                    new ConvertApiParam("Scale", "25"),
-                    new ConvertApiParam("PageSize", "a4"),
-                    new ConvertApiParam("MarginTop", "0"),
-                    new ConvertApiParam("MarginRight", "0"),
-                    new ConvertApiParam("MarginBottom", "0"),
-                    new ConvertApiParam("MarginLeft", "0"),
-                    new ConvertApiParam("PageHeight", "270")
-                );
-                await convert.SaveFilesAsync(@"./");
                 var TempFilePath = $"{fileName}.pdf";
+                var htmlContent = await System.IO.File.ReadAllTextAsync(htmlUrl);
+                using (FileStream stream = new FileStream(TempFilePath, FileMode.Create))
+                {
+                    iText.Kernel.Pdf.PdfWriter writer = new(stream);
+                    iText.Kernel.Pdf.PdfDocument pdfDocument = new(writer);
+
+                    var pageSize = iText.Kernel.Geom.PageSize.A4;
+                    pageSize.SetHeight(785f);
+                    pageSize.SetWidth(595f);
+                    pdfDocument.SetDefaultPageSize(pageSize);
+
+                    iText.Layout.Document document = new(pdfDocument);
+                    document.SetMargins(0, 0, 0, 0);  // Márgenes de 0 para utilizar el máximo espacio
+
+                    ConverterProperties properties = new ConverterProperties();
+
+                    HtmlConverter.ConvertToPdf(htmlContent, pdfDocument, properties);
+
+                    document.Close();
+                }
 
                 var base64Converted = ConvertToBase64(TempFilePath);
 
@@ -76,37 +60,32 @@ namespace ConvertDocsToOthers.Services.Services
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<string> ConvertHtmlTextToPdf(string htmlContent)
+        public string ConvertHtmlTextToPdf(string htmlContent)
         {
             try
             {
-                // var htmlFilePath = $"{Directory.GetCurrentDirectory()}/uploads/index.html";
-                var htmlFilePath = "./index.html";
-                using (StreamWriter writer = new StreamWriter(htmlFilePath))
-                {
-                    writer.Write(htmlContent);
-                }
-                var convertApi = new ConvertApi("secret_iNO6pefuwYGCRIdo");
-                var convert = await convertApi.ConvertAsync("html", "pdf",
-                    new ConvertApiFileParam("File", $"{htmlFilePath}"),
-                    new ConvertApiParam("ViewportWidth", "200"),
-                    new ConvertApiParam("ViewportHeight", "200"),
-                    new ConvertApiParam("Background", "false"),
-                    new ConvertApiParam("Scale", "25"),
-                    new ConvertApiParam("PageSize", "a4"),
-                    new ConvertApiParam("MarginTop", "0"),
-                    new ConvertApiParam("MarginRight", "0"),
-                    new ConvertApiParam("MarginBottom", "0"),
-                    new ConvertApiParam("MarginLeft", "0"),
-                    new ConvertApiParam("PageHeight", "270")
-                );
-                await convert.SaveFilesAsync(@"./");
                 var TempFilePath = "index.pdf";
+                using (FileStream stream = new FileStream(TempFilePath, FileMode.Create))
+                {
+                    ConverterProperties properties = new ConverterProperties();
+
+                    properties.SetCreateAcroForm(true);
+
+                    iText.Kernel.Pdf.PdfWriter writer = new iText.Kernel.Pdf.PdfWriter(stream);
+                    iText.Kernel.Pdf.PdfDocument pdfDocument = new iText.Kernel.Pdf.PdfDocument(writer);
+
+                    pdfDocument.SetDefaultPageSize(iText.Kernel.Geom.PageSize.A4);
+                    iText.Layout.Document document = new iText.Layout.Document(pdfDocument);
+                    document.SetMargins(0, 0, 0, 0);
+
+                    HtmlConverter.ConvertToPdf(htmlContent, pdfDocument, properties);
+
+                    document.Close();
+                }
 
                 var base64Converted = ConvertToBase64(TempFilePath);
 
                 File.Delete(TempFilePath);
-                File.Delete(htmlFilePath);
 
                 return base64Converted;
             }
@@ -160,9 +139,9 @@ namespace ConvertDocsToOthers.Services.Services
             List<object> pages = new List<object>();
             using (MemoryStream inputPdfStream = new MemoryStream(pdfBytes))
             {
-                PdfReader pdfReader = new PdfReader(inputPdfStream);
+                iTextSharp.text.pdf.PdfReader pdfReader = new iTextSharp.text.pdf.PdfReader(inputPdfStream);
 
-                PdfReader.unethicalreading = true;
+                iTextSharp.text.pdf.PdfReader.unethicalreading = true;
 
                 int totalPages = pdfReader.NumberOfPages;
 

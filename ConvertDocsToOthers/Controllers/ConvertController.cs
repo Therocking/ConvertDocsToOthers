@@ -17,11 +17,11 @@ namespace ConvertDocsToOthers.Controllers
         }
 
         [HttpPost("ConvertByHtmlTextToPdf")]
-        public async Task<IActionResult> ConverHtmlTextToPdf([FromBody] HtmlTextContent content)
+        public IActionResult ConverHtmlTextToPdf([FromBody] HtmlTextContent content)
         {
             try
             {
-                var base64String = await convertFiles.ConvertHtmlTextToPdf(content.HtmlText);
+                var base64String =  convertFiles.ConvertHtmlTextToPdf(content.HtmlText);
                 return Ok(new { Base64Data = base64String });
             }
             catch (Exception ex)
