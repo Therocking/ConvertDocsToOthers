@@ -5,9 +5,17 @@ EXPOSE 80
 EXPOSE 8080
 EXPOSE 443
 
+RUN apt-get update && apt-get install -y \
+    libfontconfig1 \
+    libgdiplus \
+    libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Imagen de build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
+
+ENV DOTNET_VERSION=8.0
 
 # Copiamos solo los .csproj para restaurar primero
 COPY ConvertDocsToOthers/ConvertDocsToOthers.csproj ConvertDocsToOthers/
