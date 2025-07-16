@@ -21,6 +21,7 @@ namespace ConvertDocsToOthers.Services.Services
         Task<(string, string)> ConvertPdfFileToBase64(string pdfPath, string PdfFileName, int page);
         List<object> ConvertPdfToJpg(string pdfBase64);
     }
+    
     public class ConvertFiles : IConvertFiles
     {
         public async Task<string> ConvertHtmlFileToPdf(string htmlUrl, string fileName)
@@ -60,6 +61,7 @@ namespace ConvertDocsToOthers.Services.Services
                 throw new Exception(ex.Message);
             }
         }
+        
         public string ConvertHtmlTextToPdf(string htmlContent)
         {
             try
@@ -94,6 +96,7 @@ namespace ConvertDocsToOthers.Services.Services
                 throw new Exception(ex.Message);
             }
         }
+        
         public async Task<(string, string)> ConvertPdfFileToBase64(string pdfPath, string PdfFileName, int page)
         {
             var convertApi = new ConvertApi("secret_iNO6pefuwYGCRIdo");
@@ -132,6 +135,7 @@ namespace ConvertDocsToOthers.Services.Services
 
             return (jpgBase64, pdfBase64);
         }
+        
         public List<object> ConvertPdfToJpg(string pdfBase64)
         {
             byte[] pdfBytes = Convert.FromBase64String(pdfBase64);
@@ -177,7 +181,6 @@ namespace ConvertDocsToOthers.Services.Services
                             var page = doc.Pages[0];
 
                             using var thumb = new PDFiumBitmap((int)page.Width, (int)page.Height, false);
-                            var color = new PDFiumSharp.Types.FPDF_COLOR();
                             thumb.Fill(new PDFiumSharp.Types.FPDF_COLOR(255, 255, 255, 255));
                             page.Render(thumb);
 
@@ -209,6 +212,7 @@ namespace ConvertDocsToOthers.Services.Services
                 return pages;
             }
         }
+        
         private string ConvertToBase64(string filePath)
         {
             byte[] fileBytes = File.ReadAllBytes(filePath);
