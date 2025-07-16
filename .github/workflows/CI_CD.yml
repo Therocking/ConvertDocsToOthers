@@ -1,0 +1,39 @@
+name: Build and Deploy .NET App to Azure Web App for Containers
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AZURE_WEBAPP_NAME: htmltopdfconverter2
+  REGISTRY_NAME: docker.io
+  IMAGE_NAME: convert_api
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Log in to Docker registry
+      run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ env.REGISTRY_NAME }} -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
+
+    - name: Build Docker image
+      run: docker build -t ${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+    - name: Push Docker image
+      run: docker push ${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+    - name: 'Login to Azure'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy to Azure Web App for Containers
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        images: ${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
