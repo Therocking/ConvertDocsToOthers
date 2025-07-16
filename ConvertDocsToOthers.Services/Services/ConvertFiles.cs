@@ -6,6 +6,7 @@ using iTextSharp.text;
 using iTextSharp.text.pdf;
 using PDFiumSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
+using SkiaSharp;
 
 namespace ConvertDocsToOthers.Services.Services
 {

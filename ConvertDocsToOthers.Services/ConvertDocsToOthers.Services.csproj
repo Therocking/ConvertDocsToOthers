@@ -18,6 +18,7 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.10" />
 	<PackageReference Include="PdfiumViewer.Native.x86_64.v8-xfa" Version="2018.4.8.256" />
 	<PackageReference Include="PDFium.LinuxV2" Version="1.1.4" />
+	<PackageReference Include="SkiaSharp" Version="3.119.0" />
   </ItemGroup>
 
   <ItemGroup>
