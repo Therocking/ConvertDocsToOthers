@@ -11,12 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Results\" />
-    <Folder Include="uploads\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ConvertDocsToOthers.Services\ConvertDocsToOthers.Services.csproj" />
   </ItemGroup>
-
 </Project>

@@ -1,56 +1,55 @@
-﻿using PuppeteerSharp;
-using PuppeteerSharp.Media;
+﻿using System.Reflection.Metadata;
+using iText.Html2pdf;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using PDFiumSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SkiaSharp;
 
 namespace ConvertDocsToOthers.Services.Services
 {
     public interface IConvertFiles
     {
         Task<string> ConvertHtmlFileToPdf(string htmlUrl, string fileName);
-        Task<string> ConvertHtmlTextToPdf(string htmlContent);
-        // Task<string> ConvertHtmlToPdfByUrl(string htmlUrl);
+        string ConvertHtmlTextToPdf(string htmlContent);
+        Task<(string, string)> ConvertPdfFileToBase64(string pdfPath, string PdfFileName, int page);
+        List<object> ConvertPdfToJpg(string pdfBase64);
     }
+
     public class ConvertFiles : IConvertFiles
     {
-        //     public async Task<string> ConvertHtmlToPdfByUrl(string htmlUrl)
-        //     {
-        //         string url = "https://demo.gotenberg.dev/forms/chromium/convert/url";
-        //         string pdfFilePath = "my.pdf";
-
-        //         using (HttpClient client = new HttpClient())
-        //         {
-        //             var form = new MultipartFormDataContent();
-        //             form.Add(new StringContent(htmlUrl), "url");
-
-        //             try
-        //             {
-        //                 HttpResponseMessage response = await client.PostAsync(url, form);
-        //                 response.EnsureSuccessStatusCode();
-
-        //                 using (var fileStream = new FileStream(pdfFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
-        //                 {
-        //                     await response.Content.CopyToAsync(fileStream);
-        //                 }
-
-        //                 Console.WriteLine($"PDF saved to {pdfFilePath}");
-        //             }
-        //             catch (HttpRequestException ex)
-        //             {
-        //                 throw new Exception(ex.Message);
-        //             }
-        //         }
-        //     }
-        // }
         public async Task<string> ConvertHtmlFileToPdf(string htmlUrl, string fileName)
         {
             try
             {
-                //var directoryPath = "./Results";
                 var TempFilePath = $"{fileName}.pdf";
+                var htmlContent = await System.IO.File.ReadAllTextAsync(htmlUrl);
+                using (FileStream stream = new FileStream(TempFilePath, FileMode.Create))
+                {
+                    iText.Kernel.Pdf.PdfWriter writer = new(stream);
+                    iText.Kernel.Pdf.PdfDocument pdfDocument = new(writer);
 
-                var resultFilePath = await FetchPdfFile(TempFilePath, htmlUrl);
+                    var pageSize = iText.Kernel.Geom.PageSize.A4;
+                    pageSize.SetHeight(785f);
+                    pageSize.SetWidth(595f);
+                    pdfDocument.SetDefaultPageSize(pageSize);
 
-                var base64Converted = ConvertToBase64(resultFilePath);
-                //DeleteTempFiles();
+                    iText.Layout.Document document = new(pdfDocument);
+                    document.SetMargins(0, 0, 0, 0);
+
+                    ConverterProperties properties = new ConverterProperties();
+
+                    HtmlConverter.ConvertToPdf(htmlContent, pdfDocument, properties);
+
+                    document.Close();
+                }
+
+                var base64Converted = ConvertToBase64(TempFilePath);
+
+                File.Delete(TempFilePath);
+                File.Delete(htmlUrl);
                 return base64Converted;
             }
             catch (Exception ex)
@@ -58,22 +57,33 @@ namespace ConvertDocsToOthers.Services.Services
                 throw new Exception(ex.Message);
             }
         }
-        public async Task<string> ConvertHtmlTextToPdf(string htmlContent)
+
+        public string ConvertHtmlTextToPdf(string htmlContent)
         {
             try
             {
-                // var htmlFilePath = $"{Directory.GetCurrentDirectory()}/uploads/index.html";
-                var htmlFilePath = "./index.html";
-                using (StreamWriter writer = new StreamWriter(htmlFilePath))
+                var TempFilePath = "index.pdf";
+                using (FileStream stream = new FileStream(TempFilePath, FileMode.Create))
                 {
-                    writer.Write(htmlContent);
-                }
-                string TempFilePath = $"./{Guid.NewGuid()}.pdf";
-                // string TempFilePath = $"{Directory.GetCurrentDirectory()}/Results/{Guid.NewGuid()}.pdf";
-                var filePdfFile = await FetchPdfFile(TempFilePath, htmlFilePath);
+                    ConverterProperties properties = new ConverterProperties();
+                    properties.SetCreateAcroForm(true);
 
-                var base64Converted = ConvertToBase64(filePdfFile);
-                //DeleteTempFiles();
+                    iText.Kernel.Pdf.PdfWriter writer = new iText.Kernel.Pdf.PdfWriter(stream);
+                    iText.Kernel.Pdf.PdfDocument pdfDocument = new iText.Kernel.Pdf.PdfDocument(writer);
+
+                    pdfDocument.SetDefaultPageSize(iText.Kernel.Geom.PageSize.A4);
+                    iText.Layout.Document document = new iText.Layout.Document(pdfDocument);
+                    document.SetMargins(0, 0, 0, 0);
+
+                    HtmlConverter.ConvertToPdf(htmlContent, pdfDocument, properties);
+
+                    document.Close();
+                }
+
+                var base64Converted = ConvertToBase64(TempFilePath);
+
+                File.Delete(TempFilePath);
+
                 return base64Converted;
             }
             catch (Exception ex)
@@ -81,63 +91,147 @@ namespace ConvertDocsToOthers.Services.Services
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<(string, string)> ConvertPdfFileToBase64(string pdfPath, string PdfFileName, int page)
+        {
+            try
+            {
+                // Leer el archivo PDF
+                byte[] pdfBytes = await File.ReadAllBytesAsync(pdfPath);
+                string pdfBase64 = Convert.ToBase64String(pdfBytes);
+
+                // Usar PDFiumSharp para convertir la página específica a imagen
+                using (var doc = new PDFiumSharp.PdfDocument(pdfBytes))
+                {
+                    if (page > doc.Pages.Count || page < 1)
+                    {
+                        throw new ArgumentException($"La página {page} no existe. El documento tiene {doc.Pages.Count} páginas.");
+                    }
+
+                    var pdfPage = doc.Pages[page - 1]; // Las páginas están indexadas desde 0
+
+                    // Configurar el tamaño de la imagen
+                    int width = (int)pdfPage.Width;
+                    int height = (int)pdfPage.Height;
+
+                    // Opcional: escalar la imagen para mejor calidad
+                    float scale = 2.0f; // Factor de escala para mejor resolución
+                    width = (int)(width * scale);
+                    height = (int)(height * scale);
+
+                    using var bitmap = new PDFiumBitmap(width, height, false);
+
+                    // Llenar con fondo blanco
+                    bitmap.Fill(new PDFiumSharp.Types.FPDF_COLOR(255, 255, 255, 255));
+
+                    // Renderizar la página en el bitmap
+                    pdfPage.Render(bitmap);
+
+                    // Convertir a stream BMP
+                    using var bmpStream = new MemoryStream();
+                    bitmap.Save(bmpStream);
+                    bmpStream.Position = 0;
+
+                    // Convertir BMP a JPEG usando SkiaSharp
+                    using var skBitmap = SKBitmap.Decode(bmpStream);
+                    using var skImage = SKImage.FromBitmap(skBitmap);
+                    using var skData = skImage.Encode(SKEncodedImageFormat.Jpeg, 90); // 90% de calidad JPEG
+
+                    byte[] jpegBytes = skData.ToArray();
+                    string jpgBase64 = Convert.ToBase64String(jpegBytes);
+
+                    // Limpiar archivo temporal
+                    File.Delete(pdfPath);
+
+                    return (jpgBase64, pdfBase64);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Limpiar archivo en caso de error
+                if (File.Exists(pdfPath))
+                {
+                    File.Delete(pdfPath);
+                }
+                throw new Exception($"Error al convertir PDF a imagen: {ex.Message}");
+            }
+        }
+
+        public List<object> ConvertPdfToJpg(string pdfBase64)
+        {
+            byte[] pdfBytes = Convert.FromBase64String(pdfBase64);
+
+            List<object> pages = new List<object>();
+            using (MemoryStream inputPdfStream = new MemoryStream(pdfBytes))
+            {
+                iTextSharp.text.pdf.PdfReader pdfReader = new iTextSharp.text.pdf.PdfReader(inputPdfStream);
+                iTextSharp.text.pdf.PdfReader.unethicalreading = true;
+
+                int totalPages = pdfReader.NumberOfPages;
+
+                for (int i = 1; i <= totalPages; i++)
+                {
+                    using (MemoryStream outputPdfStream = new MemoryStream())
+                    {
+                        string outputFileName = $"{i}.pdf";
+
+                        iTextSharp.text.Document document = new iTextSharp.text.Document();
+                        PdfCopy pdfCopyProvider = new(document, outputPdfStream);
+                        document.Open();
+                        PdfImportedPage importedPage = pdfCopyProvider.GetImportedPage(pdfReader, i);
+                        if (importedPage == null)
+                        {
+                            throw new InvalidOperationException("No se pudo importar la página");
+                        }
+                        pdfCopyProvider.AddPage(importedPage);
+                        document.Close();
+
+                        byte[] outputPdfBytes = outputPdfStream.ToArray();
+                        string outputPdfBase64 = Convert.ToBase64String(outputPdfBytes);
+
+                        using (var doc = new PDFiumSharp.PdfDocument(outputPdfBytes))
+                        {
+                            var page = doc.Pages[0];
+
+                            using var thumb = new PDFiumBitmap((int)page.Width, (int)page.Height, false);
+                            thumb.Fill(new PDFiumSharp.Types.FPDF_COLOR(255, 255, 255, 255));
+                            page.Render(thumb);
+
+                            using MemoryStream memoryStreamBMP = new MemoryStream();
+                            thumb.Save(memoryStreamBMP);
+
+                            memoryStreamBMP.Position = 0;
+                            using var image = SixLabors.ImageSharp.Image.Load(memoryStreamBMP);
+                            using var jpegStream = new MemoryStream();
+
+                            var encoder = new JpegEncoder()
+                            {
+                                Quality = 90
+                            };
+
+                            image.Save(jpegStream, encoder);
+                            byte[] jpegBytes = jpegStream.ToArray();
+                            string base64String = Convert.ToBase64String(jpegBytes);
+
+                            pages.Add(new
+                            {
+                                Page = $"{i}",
+                                Jpgbase64 = base64String,
+                                Pdfbase64 = outputPdfBase64
+                            });
+                        }
+                    }
+                }
+
+                return pages;
+            }
+        }
+
         private string ConvertToBase64(string filePath)
         {
             byte[] fileBytes = File.ReadAllBytes(filePath);
-
             string base64String = Convert.ToBase64String(fileBytes);
-
             return base64String;
-        }
-        private void DeleteTempFiles()
-        {
-            var dirs = new List<string>() {
-                // $"{Directory.GetCurrentDirectory()}/Results",
-                // $"{Directory.GetCurrentDirectory()}/uploads"
-                "./Results",
-                "./uploads"
-            };
-            foreach (var dir in dirs)
-            {
-                System.IO.DirectoryInfo di = new DirectoryInfo(dir);
-
-                foreach (FileInfo file in di.GetFiles())
-                {
-                    file.Delete();
-                }
-            }
-        }
-        private async Task<string> FetchPdfFile(string pdfFilePath, string htmlPath)
-        {
-            string url = "https://demo.gotenberg.dev/forms/chromium/convert/html";
-
-            using (HttpClient client = new HttpClient())
-            {
-                var form = new MultipartFormDataContent();
-
-                // Leer el archivo HTML y agregarlo al formulario
-                byte[] fileBytes = await File.ReadAllBytesAsync(htmlPath);
-                var fileContent = new ByteArrayContent(fileBytes);
-                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/html");
-                form.Add(fileContent, "files", Path.GetFileName(htmlPath));
-
-                try
-                {
-                    HttpResponseMessage response = await client.PostAsync(url, form);
-                    response.EnsureSuccessStatusCode();
-
-                    using (var fileStream = new FileStream(pdfFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
-                    {
-                        await response.Content.CopyToAsync(fileStream);
-                    }
-
-                    return pdfFilePath;
-                }
-                catch (HttpRequestException e)
-                {
-                    throw new Exception(e.Message);
-                }
-            }
         }
     }
 }

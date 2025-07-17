@@ -7,7 +7,7 @@ on:
 env:
   AZURE_WEBAPP_NAME: htmltopdfconverter2
   REGISTRY_NAME: docker.io
-  IMAGE_NAME: convert_api
+  IMAGE_NAME: ${{ secrets.REGISTRY_USERNAME }}/convert_api:${{ github.sha }}
 
 jobs:
   build-and-deploy:
@@ -21,14 +21,14 @@ jobs:
       uses: docker/login-action@v3
       with:
         registry: ${{ env.REGISTRY_NAME }}
-        username: ${{ secrets.REGISTRY_PASSWORD }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
 
     - name: Build Docker image
-      run: docker build -t ${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -f ./ConvertDocsToOthers/Dockerfile .
+      run: docker build -t ${{ env.IMAGE_NAME }} -f ./ConvertDocsToOthers/Dockerfile .
 
     - name: Push Docker image
-      run: docker push ${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      run: docker push ${{ env.IMAGE_NAME }}
 
     - name: 'Login to Azure'
       uses: azure/login@v1
@@ -39,4 +39,4 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        images: ${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        images: ${{ env.IMAGE_NAME }}
