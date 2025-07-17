@@ -3,7 +3,7 @@ name: Build and Deploy .NET App to Azure Web App for Containers
 on:
   push:
     branches:
-      - main
+      - dev
 
 env:
   AZURE_WEBAPP_NAME: htmltopdfconverter2
