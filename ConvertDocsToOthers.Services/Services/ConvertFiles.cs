@@ -18,6 +18,7 @@ namespace ConvertDocsToOthers.Services.Services
         string ConvertHtmlTextToPdf(string htmlContent);
         Task<(string, string)> ConvertPdfFileToBase64(string pdfPath, string PdfFileName, int page);
         List<object> ConvertPdfToJpg(string pdfBase64);
+        string MergePdfPages(List<string> pdfBase64Pages);
     }
 
     public class ConvertFiles : IConvertFiles
@@ -233,6 +234,71 @@ namespace ConvertDocsToOthers.Services.Services
                 }
 
                 return pages;
+            }
+        }
+
+        public string MergePdfPages(List<string> pdfBase64Pages)
+        {
+            try
+            {
+                if (pdfBase64Pages == null || !pdfBase64Pages.Any())
+                {
+                    throw new ArgumentException("La lista de páginas PDF no puede estar vacía.");
+                }
+
+                var tempFilePath = $"merged_{Guid.NewGuid()}.pdf";
+
+                using (FileStream stream = new FileStream(tempFilePath, FileMode.Create))
+                {
+                    // Crear el documento PDF de destino usando iText7
+                    iText.Kernel.Pdf.PdfWriter writer = new iText.Kernel.Pdf.PdfWriter(stream);
+                    iText.Kernel.Pdf.PdfDocument pdfDestination = new iText.Kernel.Pdf.PdfDocument(writer);
+
+                    // Procesar cada página PDF
+                    foreach (string pdfBase64 in pdfBase64Pages)
+                    {
+                        try
+                        {
+                            // Convertir base64 a bytes
+                            byte[] pdfBytes = Convert.FromBase64String(pdfBase64);
+
+                            using (MemoryStream inputStream = new MemoryStream(pdfBytes))
+                            {
+                                // Crear documento PDF fuente
+                                iText.Kernel.Pdf.PdfReader reader = new iText.Kernel.Pdf.PdfReader(inputStream);
+                                iText.Kernel.Pdf.PdfDocument pdfSource = new iText.Kernel.Pdf.PdfDocument(reader);
+
+                                // Copiar todas las páginas del documento fuente al destino
+                                int numberOfPages = pdfSource.GetNumberOfPages();
+                                for (int i = 1; i <= numberOfPages; i++)
+                                {
+                                    var page = pdfSource.GetPage(i);
+                                    pdfSource.CopyPagesTo(i, i, pdfDestination);
+                                }
+
+                                pdfSource.Close();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception($"Error al procesar una página PDF: {ex.Message}");
+                        }
+                    }
+
+                    pdfDestination.Close();
+                }
+
+                // Convertir el archivo resultante a base64
+                var mergedBase64 = ConvertToBase64(tempFilePath);
+
+                // Limpiar archivo temporal
+                File.Delete(tempFilePath);
+
+                return mergedBase64;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al unir páginas PDF: {ex.Message}");
             }
         }
 

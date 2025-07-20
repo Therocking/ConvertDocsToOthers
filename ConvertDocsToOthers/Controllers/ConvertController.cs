@@ -29,6 +29,7 @@ namespace ConvertDocsToOthers.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
         [HttpPost("ConvertFromHtmlFileToPdf")]
         public async Task<IActionResult> ConvertHtmlFileToPdf(IFormFile htmlFile)
         {
@@ -55,6 +56,7 @@ namespace ConvertDocsToOthers.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
         [HttpPost("ConvertFromPdfFileToJpg")]
         public async Task<IActionResult> ConvertPdfFileToPdf(IFormFile pdfFile, [FromQuery] int pageNumber)
         {
@@ -81,12 +83,30 @@ namespace ConvertDocsToOthers.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
         [HttpPost("PdfPagesWithImage")]
         public IActionResult CreatePdfImageByPdfPages([FromBody] PdfContent pdfContent)
         {
             try
             {
                 return Ok(convertFiles.ConvertPdfToJpg(pdfContent.pdf));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost("MergePdfPages")]
+        public IActionResult MergePdfPages([FromBody] List<PdfContent> pdfContents)
+        {
+            try
+            {
+                if (pdfContents == null || pdfContents.Count == 0)
+                    return BadRequest("No PDF contents provided");
+
+                var mergedPdfBase64 = convertFiles.MergePdfPages(pdfContents.Select(p => p.pdf).ToList());
+                return Ok(new { MergedPdfBase64 = mergedPdfBase64 });
             }
             catch (Exception ex)
             {
