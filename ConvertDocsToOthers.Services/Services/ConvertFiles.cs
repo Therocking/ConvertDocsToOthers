@@ -5,8 +5,10 @@ using iText.Layout;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using PDFiumSharp;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
-using SkiaSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Processing;
 
 namespace ConvertDocsToOthers.Services.Services
 {
@@ -132,12 +134,17 @@ namespace ConvertDocsToOthers.Services.Services
                     bitmap.Save(bmpStream);
                     bmpStream.Position = 0;
 
-                    // Convertir BMP a JPEG usando SkiaSharp
-                    using var skBitmap = SKBitmap.Decode(bmpStream);
-                    using var skImage = SKImage.FromBitmap(skBitmap);
-                    using var skData = skImage.Encode(SKEncodedImageFormat.Jpeg, 90); // 90% de calidad JPEG
+                    // Usar ImageSharp en lugar de SkiaSharp
+                    using var image = SixLabors.ImageSharp.Image.Load(bmpStream);
+                    using var jpegStream = new MemoryStream();
 
-                    byte[] jpegBytes = skData.ToArray();
+                    var encoder = new JpegEncoder()
+                    {
+                        Quality = 90
+                    };
+
+                    image.SaveAsJpeg(jpegStream, encoder);
+                    byte[] jpegBytes = jpegStream.ToArray();
                     string jpgBase64 = Convert.ToBase64String(jpegBytes);
 
                     // Limpiar archivo temporal
@@ -201,6 +208,8 @@ namespace ConvertDocsToOthers.Services.Services
                             thumb.Save(memoryStreamBMP);
 
                             memoryStreamBMP.Position = 0;
+
+                            // Usar solo ImageSharp, eliminar SkiaSharp completamente
                             using var image = SixLabors.ImageSharp.Image.Load(memoryStreamBMP);
                             using var jpegStream = new MemoryStream();
 
@@ -209,7 +218,7 @@ namespace ConvertDocsToOthers.Services.Services
                                 Quality = 90
                             };
 
-                            image.Save(jpegStream, encoder);
+                            image.SaveAsJpeg(jpegStream, encoder);
                             byte[] jpegBytes = jpegStream.ToArray();
                             string base64String = Convert.ToBase64String(jpegBytes);
 
