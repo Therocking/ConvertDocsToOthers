@@ -4,13 +4,17 @@ on:
   push:
     branches: ["dev"]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   AZURE_WEBAPP_NAME: htmltopdfconverter2
   REGISTRY_NAME: docker.io
   IMAGE_NAME: ${{ secrets.REGISTRY_USERNAME }}/convert_api:${{ github.sha }}
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,13 +34,18 @@ jobs:
     - name: Push Docker image
       run: docker push ${{ env.IMAGE_NAME }}
 
-    - name: 'Login to Azure'
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
 
-    - name: Deploy to Azure Web App for Containers
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        images: ${{ env.IMAGE_NAME }}
+    steps:
+      - name: 'Login to Azure'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+  
+      - name: Deploy to Azure Web App for Containers
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          images: ${{ needs.build.outputs.image_name }}
