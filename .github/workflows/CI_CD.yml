@@ -39,7 +39,7 @@ jobs:
         push: true
         tags: ${{ env.IMAGE_NAME }}
         cache-from: type=gha # type=registry,ref=${{ secrets.REGISTRY_USERNAME }}/convert_api:cache
-        cache-to: type=gha,mode=max # type=registry,ref=${{ secrets.REGISTRY_USERNAME }}/convert_api:cache,mode=max
+        cache-to: type=gha,mode=min # type=registry,ref=${{ secrets.REGISTRY_USERNAME }}/convert_api:cache,mode=max
 
   deploy:
     needs: build
